@@ -44,39 +44,10 @@ void addProduct();
 void updateProduct();
 void removeProduct();
 void sale();
+void todaySales();
 Role strToRole(char [] );
 char* roleToStr(Role);
-void get_cuurent_date(char []);	
-void todaySales()
-{
-	system("cls");
-	int i;
-	char choice;
-	struct sale sales;
-	FILE *pt;
-	pt =fopen("Total Sales.dat","rb");
-	if(pt == NULL)
-	{
-		printf("Error");
-		return;
-	}
-	i=0;
-	while(fread(&sales,sizeof(sales),1,pt))
-	{
-		printf("\n%d %s %d",i+1,sales.p.name,sales.p.quantity);
-		i++;
-	}
-	printf("press (e) to view total sales or (b) to go back. ");
-	scanf("&c",choice);
-	if(choice =='e')
-	{
-		
-	}
-	else if (choice == 'b')
-	{
-		return;
-	}
-}
+void get_current_date(char []);	
 
 int main()
 {
@@ -416,7 +387,7 @@ o_start:
 			goto o_start;
 			break;
 		case '2':
-			printf("In Progress.");
+			todaySales();
 			goto o_start;
 			break;
 		case '3':
@@ -479,7 +450,7 @@ m_start:
 			goto m_start;
 			break;
 		case '2':
-			printf("E");
+			todaySales();
 			goto m_start;
 			break;
 		case '3':
@@ -853,7 +824,7 @@ mod_start:
 
 void removeAcc(Role role)
 {
-		system("cls");
+	system("cls");
 	int i=0;
 	char choice,uName[20];
 	struct userDetail user;
@@ -873,7 +844,7 @@ rm_user:
 	rewind(rmu_fp);
 	while(fread(&user,sizeof(user),1,rmu_fp))
 	{	
-		if( user.role == manager)
+		if(role == manager)
 		{
 			continue;
 		}
@@ -908,8 +879,15 @@ valid_temp:
 	}
 	fclose(rmu_fp);
 	fclose(tp_fp);
-	remove("Accounts.dat");
-	rename("tempfile.dat","Accounts.dat");
+	if(remove("Accounts.dat") !=0)
+	{
+		printf("Error");
+	}
+	else
+	{
+		rename("tempfile.dat","Accounts.dat");
+		
+	}
 	printf("\nAccount has been removed successfully.");
 	printf("\nDo you want to remove another Account.");
 	printf("\nPress (y/Y) to remove.");
@@ -1182,8 +1160,8 @@ void sale()
 		return;
 	}
 	size = sizeof(product);
-	choice ='y';
-	while(choice == 'y')
+	choice ='n';
+	while(choice == 'n')
 	{
 		printf("\nEnter the Product's name: ");
 		fflush(stdin);
@@ -1208,15 +1186,52 @@ void sale()
 		fwrite(&product,size,1,ptr_sale);
 		ptr_total = fopen("Total Sales.dat","ab+");
 		sales.p.quantity = quanti;
-		sales.date = get_current_date(date);
+		get_current_date(date);
+		strcpy(sales.date,date);
 		fwrite(&sale,sizeof(sale),1,ptr_total);
 		fclose(ptr_total); 
 		printf("\nDo you want to exit[y/n]: ");
 		fflush(stdin);
 		scanf(" %c",&choice);
 	}
+	fclose(ptr_sale);
 	printf("\nThank you for using");
 	return;
+}
+
+void todaySales()
+{
+	system("cls");
+	int i;
+	char choice,date[11];
+	struct sale sales;
+	FILE *pt;
+	pt =fopen("Total Sales.dat","rb");
+	if(pt == NULL)
+	{
+		printf("Error");
+		Sleep(1000);
+		return;
+	}
+	i=0;
+	while(fread(&sales,sizeof(sales),1,pt))
+	{
+		if(strcmp(date,sales.date) == 0)
+		{
+			printf("\n%d %s %d",i+1,sales.p.name,sales.p.quantity);
+			i++;
+		}
+	}
+	printf("press (e) to view total sales or (b) to go back. ");
+	scanf("&c",choice);
+	if(choice =='e')
+	{
+		
+	}
+	else if (choice == 'b')
+	{
+		return;
+	}
 }
 
 Role strToRole(char role[])
@@ -1263,7 +1278,7 @@ char* roleToStr(Role role)
 	}
 }
 
-void get_cuurent_date(char date)
+void get_current_date(char date[])
 {
 	time_t t = time(NULL);
 	struct tm *tm = localtime(&t);
