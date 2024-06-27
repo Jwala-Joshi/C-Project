@@ -594,7 +594,7 @@ void addAcc()
 	char ch,uName[20],pass[20],uid[10],role[10];
 	struct userDetail user;
 	FILE *a_fp;
-	a_fp = fopen("Accounts.dat","ab");
+	a_fp = fopen("Accounts.dat","ab+");
 	if(a_fp == NULL)
 	{
 		setColor(12);
@@ -944,8 +944,8 @@ void list_Product()
 void addProduct()
 {
 	system("cls");
-	int i=0;
-	char choice;
+	int i=0,size;
+	char choice,name[20];
 	struct store product;
 	FILE *ap_ptr;
 	ap_ptr = fopen("Products.dat","ab");
@@ -957,12 +957,39 @@ void addProduct()
 		fclose(ap_ptr);
 		return;
 	}
-	choice = 'y';
-	while(choice == 'y' || choice == 'Y')
+	size = sizeof(product);
+add_Product:
+	printf("Enter product name:");
+	fflush(stdin);
+	gets(name);
+	while(fread(&product,sizeof(product),1,ap_ptr))
 	{
-		printf("Enter product name:");
-		fflush(stdin);
-		gets(product.name);
+		if(strcmp(name,product.name) == 0)
+		{
+			fseek(ap_ptr, -size, SEEK_CUR);
+			printf("Enter it's quantity");
+			fflush(stdin);
+			scanf(" %d",&product.quantity);
+			fwrite(&product,sizeof(product),1,ap_ptr);
+			fclose(ap_ptr);
+			printf("\nProduct Added successfully");
+			printf("\nDo you want to add another product.");
+			printf("\nPress (y/Y) to add.");
+			scanf(" %c",&choice);
+			if(choice == 'y' || choice == 'Y')
+			{
+				goto add_Product;
+			} 
+			printf("Redirecting to main page");
+			for(i=0;i<3;i++)
+			{
+				printf(".");
+				Sleep(500);
+			}
+			return;
+		}
+	}
+		strcpy(product.name,name);
 		printf("Enter it's quantity");
 		fflush(stdin);
 		scanf(" %d",&product.quantity);
@@ -977,7 +1004,10 @@ void addProduct()
 		printf("\nDo you want to add another product.");
 		printf("\nPress (y/Y) to add.");
 		scanf(" %c",&choice);
-	}
+		if(choice == 'y' || choice == 'Y')
+		{
+			goto add_Product;
+		} 
 	fclose(ap_ptr);
 	printf("Redirecting to main page");
 	for(i=0;i<3;i++)
@@ -1146,92 +1176,131 @@ void sale()
 	system("cls");
 	char name[20],choice,date[11];
 	long int barcode;
-	int quanti,size;
+	int i=0,flag=0,qty,size;
 	struct store product;
 	struct sale sales;
-	time_t t = time(NULL);
 	FILE *ptr_sale,*ptr_total;
+sale_start:
 	ptr_sale = fopen("Products.dat","r+");
+	ptr_total = fopen("TotalSales.dat","ab+");
 	if(ptr_sale == NULL)
 	{
 		setColor(12);
 		printf("Error Accessing data");
 		setColor(9);
+		fclose(ptr_sale);
+		printf("\nRedirecting to main page");
+		for(i=0;i<3;i++)
+		{
+			printf(".");
+			Sleep(500);
+		}
 		return;
 	}
 	size = sizeof(product);
-	choice ='n';
-	while(choice == 'n')
-	{
 		printf("\nEnter the Product's name: ");
 		fflush(stdin);
 		gets(name);
-		while(fread(&product,sizeof(product),1,ptr_sale))
+		rewind(ptr_sale);
+		while(fread(&product,size,1,ptr_sale))
 		{
 			if(strcmp(name,product.name) == 0)
 			{
-				goto okay;
+				fseek(ptr_sale, -size, SEEK_CUR);
+				flag =1;
+				break;
 			}
 		}
-		printf("\nThere is no such product in the store.Try Again.");
-		continue;
-	okay:
+		if(flag == 0)
+		{
+			setColor(12);
+			printf("\nThere is no such product in the store.Try Again.");
+			setColor(9);
+			goto sale_start;
+		}
 		printf("\nEnter the quantity: ");
 		fflush(stdin);	
-		scanf(" %d",&quanti);
-		printf("\nYour total cost is %.2f",product.rate*quanti);
-		fseek(ptr_sale, -size,SEEK_CUR);
-		product.quantity -=quanti;
-		rewind(ptr_sale);
+		scanf(" %d",&qty);
+		if( qty > product.quantity)
+		{
+			setColor(12);
+			printf("\nInsufficent Quantity.");
+			setColor(9);
+			goto sale_start;
+		}
+		else
+		{
+		product.quantity -= qty;
 		fwrite(&product,size,1,ptr_sale);
-		ptr_total = fopen("Total Sales.dat","ab+");
-		sales.p.quantity = quanti;
+		printf("\nYour total cost is %.2f",product.rate*qty);
 		get_current_date(date);
+		strcpy(sales.p.name,product.name);
 		strcpy(sales.date,date);
-		fwrite(&sale,sizeof(sale),1,ptr_total);
-		fclose(ptr_total); 
-		printf("\nDo you want to exit[y/n]: ");
+		sales.p.rate = product.rate;
+		sales.p.quantity = qty;
+		sales.p.rate *= sales.p.quantity;
+		fwrite(&sales,sizeof(sales),1,ptr_total);
+		fclose(ptr_sale);
+		fclose(ptr_total);
+		setColor(10); 
+		printf("Product Sale Successfull.");
+		setColor(9);
+		printf("\nDo you want to sale another product. ");
+		printf("\nPress (y/Y) to sale.");
 		fflush(stdin);
 		scanf(" %c",&choice);
-	}
-	fclose(ptr_sale);
-	printf("\nThank you for using");
-	return;
+		if(choice == 'y' || choice == 'Y')
+		{
+			goto sale_start;
+		}
+		printf("\nRedirecting to main page");
+		for(i=0;i<3;i++)
+		{
+			printf(".");
+			Sleep(500);
+		}
+		return;
+		}
 }
 
 void todaySales()
 {
 	system("cls");
-	int i;
+	int i=0,total =0;
 	char choice,date[11];
 	struct sale sales;
 	FILE *pt;
-	pt =fopen("Total Sales.dat","rb");
+	pt =fopen("TotalSales.dat","rb");
 	if(pt == NULL)
 	{
+		setColor(12);
 		printf("Error");
+		setColor(9);
+		fclose(pt);
 		Sleep(1000);
 		return;
 	}
 	i=0;
+	printf("\n\t\t\t\t\tToday's Sale");
+	printf("\n\t\t\t------------------------------------");
+	printf("\nS.N Name\t\t\t Date\t\t\tQuantity\tTotal");
 	while(fread(&sales,sizeof(sales),1,pt))
 	{
-		if(strcmp(date,sales.date) == 0)
-		{
-			printf("\n%d %s %d",i+1,sales.p.name,sales.p.quantity);
-			i++;
-		}
+		printf("\n%d.   %s\t\t\t %s\t\t%d\t\t%.2f",i+1,sales.p.name,sales.date,sales.p.quantity,sales.p.rate);
+		total += sales.p.rate;
+		i++;
 	}
-	printf("press (e) to view total sales or (b) to go back. ");
-	scanf("&c",choice);
-	if(choice =='e')
-	{
-		
-	}
-	else if (choice == 'b')
+	printf("\n---------------------------");
+	printf("\nTotal Sales: \t\t\t\t%d",total);
+	fclose(pt);
+	printf("\nPress (b) to go back.");
+	scanf(" %c",&choice);
+	if (choice == 'b')
 	{
 		return;
 	}
+	printf("Thank you for using.");
+	exit(0);
 }
 
 Role strToRole(char role[])
