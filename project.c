@@ -122,10 +122,19 @@ l_start:
 		}
 		else
 		{
+			if(flag_2==1)
+			{
+				setColor(12);
+				printf("\nIncorrect Admin password\n");
+				setColor(7);
+				flag_2++;
+				goto l_start;
+			}
 			setColor(12);
-			printf("\nIncorrect Admin password\n");
+			printf("\nToo many attempts for admin.Forcefully shutting down");
 			setColor(7);
-			goto l_start;
+			Sleep(2000);
+			exit(1);
 		}
 	}
 	rewind(l_fp);
@@ -214,33 +223,24 @@ void roleFunctions(Role loggedRole)
 	{
 		case owner:
 			setColor(9);
-			printf("\nOwner");
 			owner_Access(loggedRole);
 			break;
 		
 		case manager:
 			setColor(9);
-			printf("\nManager");
 			manager_Access(loggedRole);
 			break;
 		
 		case employee:
 			setColor(9);
-			printf("\nEmp");
 			Emp_Access(loggedRole);
 			break;
 			
 		case admin:
 			setColor(9);
-			printf("\nEmp");
 			ADMIN(admin);
 			break;
-			
-		default:
-			setColor(12);
-			printf("Error");
 	}
-	setColor(7);
 }
 
 void recovery()
@@ -265,7 +265,7 @@ r_start:
 	}
 	setColor(12);
 	printf("\nUser doesn't Exist.Try again.");	
-	setColor(7);
+	setColor(9);
 	flag++;
 	goto r_start;
 r_Pass:
@@ -330,13 +330,17 @@ r_Pass:
 		}
 		if(strcmp(pass1,pass2) != 0)
 		{
+			setColor(12);
 			printf("\nPassword doesn't match. Try again.");
+			setColor(7);
 			goto newPass;
 		}
 		strcpy(user.pass,pass1);
 		fwrite(&user,sizeof(user),1,rec_fp);
 		fclose(rec_fp);
+		setColor(10);
 		printf("\nPassword Successfully Changed.");
+		setColor(7);
 		printf("\nRedirecting to Login page");
 		for(i=0;i<3;i++)
 		{
@@ -348,14 +352,14 @@ r_Pass:
 	if(flag>1)
 	{
 		setColor(12);
-		printf("\nUID couldn't be verified.Try Again.");
-		setColor(7);
-			
+		printf("\nInvaild UID.Try Again");
+		setColor(9);
+		goto r_Pass;	
 	}
 	setColor(12);
-	printf("\nInvaild UID.Try Again");
+	printf("\nUID couldn't be verified.");
+	printf("\nForcefully shutting down.");
 	setColor(7);
-	goto r_Pass;
 }
 
 void owner_Access(Role role)
@@ -926,7 +930,7 @@ void list_Product()
 	printf("\nS.N  Name\t Barcode \tQuantity\t rate");
 	while(fread(&product,sizeof(product),1,lp_ptr))
 	{
-		printf("\n%d.   %s\t %lld\t   %d\t\t %.2f",i+1,product.name,product.barcodeNum,product.quantity,product.rate);
+		printf("\n%d.   %s\t %13lld\t   %d\t\t %.2f",i+1,product.name,product.barcodeNum,product.quantity,product.rate);
 		i++;
 	}
 	fclose(lp_ptr);
@@ -995,7 +999,7 @@ add_Product:
 		scanf(" %d",&product.quantity);
 		printf("Enter it's Barcode");
 		fflush(stdin);
-		scanf("%lld",&product.barcodeNum);
+		scanf("%13lld",&product.barcodeNum);
 		printf("Enter it's rate");
 		fflush(stdin);
 		scanf("%f",&product.rate);
@@ -1045,16 +1049,16 @@ up_start:
 		if(strcmp(name,product.name) == 0)
 		{
 			fseek(up_ptr, -size, SEEK_CUR);
-			printf("Enter New product");
+			printf("Enter New product: ");
 			fflush(stdin);
 			gets(product.name);
-			printf("Enter it's quantity");
+			printf("Enter it's quantity: ");
 			fflush(stdin);
 			scanf(" %d",&product.quantity);
-			printf("Enter it's Barcode");
+			printf("Enter it's Barcode: ");
 			fflush(stdin);
-			scanf("%lld",&product.barcodeNum);
-			printf("Enter it's rate");
+			scanf("%13lld",&product.barcodeNum);
+			printf("Enter it's rate: ");
 			fflush(stdin);
 			scanf("%f",&product.rate);
 			fwrite(&product,sizeof(product),1,up_ptr);
@@ -1175,7 +1179,7 @@ void sale()
 {
 	system("cls");
 	char name[20],choice,date[11];
-	long int barcode;
+	long long int barcode;
 	int i=0,flag=0,qty,size;
 	struct store product;
 	struct sale sales;
@@ -1216,6 +1220,27 @@ sale_start:
 			setColor(12);
 			printf("\nThere is no such product in the store.Try Again.");
 			setColor(9);
+			flag--;
+			goto sale_start;
+		}
+		if(flag == -1)
+		{
+			printf("\nTry using the product's barcode.");
+			printf("\nEnter the Barcode: ");
+			fflush(stdin);
+			scanf("%12lld",&barcode);
+			rewind(ptr_sale);
+			while(fread(&product,size,1,ptr_sale))
+			{
+				if(product.barcodeNum == barcode)
+				{
+					fseek(ptr_sale, -size, SEEK_CUR);
+					flag =1;
+					break;
+				}
+			}
+			flag = 0;
+			printf("\nThere is no such product in the store.");
 			goto sale_start;
 		}
 		printf("\nEnter the quantity: ");
