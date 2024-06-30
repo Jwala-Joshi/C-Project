@@ -9,7 +9,7 @@ typedef enum {owner,manager,employee,admin} Role;
 
 struct userDetail
 {
-	char uName[20],pass[20],uid[10];
+	char uName[20],pass[20],uid[3];
 	Role role;
 };
 
@@ -48,6 +48,7 @@ void todaySales();
 Role strToRole(char [] );
 char* roleToStr(Role);
 void get_current_date(char []);	
+char* UID_Generator(Role );
 
 int main()
 {
@@ -595,7 +596,7 @@ void addAcc()
 {
 	system("cls");
 	int i=0;
-	char ch,uName[20],pass[20],uid[10],role[10];
+	char ch,uName[20],uid[3],role[8];
 	struct userDetail user;
 	FILE *a_fp;
 	a_fp = fopen("Accounts.dat","ab+");
@@ -609,10 +610,22 @@ void addAcc()
 		return;
 	}
 add_start:
-	printf("Enter Username: ");
+	printf("\n\t\t\t\tEnter Username: ");
 	fflush(stdin);
-	gets(user.uName);
-	printf("Enter Password: ");
+	gets(uName);
+	rewind(a_fp);
+	while(fread(&user,sizeof(user),1,a_fp))
+	{
+		if(strcmp(uName,user.uName) == 0)
+		{
+			setColor(12);
+			printf("\n\t\t\t\tUser already exist.Try with a different username.");
+			setColor(9);
+			goto add_start;
+		}
+	}
+	strcpy(user.uName,uName);
+	printf("\n\t\t\t\tEnter Password: ");
 	fflush(stdin);
 	i=0;
 	while(1)
@@ -638,10 +651,7 @@ add_start:
 			}
 		}
 	}
-	printf("Enter UID: ");
-	fflush(stdin);
-	gets(user.uid);
-	printf("Enter role: ");
+	printf("\n\t\t\t\tEnter role: ");
 	fflush(stdin);
 	gets(role);
 	user.role = strToRole(role);
@@ -649,12 +659,23 @@ add_start:
 	{
 		setColor(12);
 		printf("\n\t\t\t\tInvalid Role.Try Again.");
-		setColor(7);
+		setColor(9);
 		goto add_start;
 	}
+	strcpy(uid, UID_Generator(user.role));
+	if(strcmp(uid,"Invalid") == 0)
+	{
+		setColor(12);
+		printf("\n\t\t\t\tUID generation Error");
+		setColor(9);
+		goto add_start;
+	}
+	strcpy(user.uid,uid);
+	printf("\n\t\t\t\tYour UID is: %s",uid);
+	printf("\n\t\t\t\tMake sure to remember it or note it down.");
 	fwrite(&user,sizeof(user),1,a_fp);
 	fclose(a_fp);
-	system("cls");
+	Sleep(3000);
 	printf("\n\t\t\t\tThe user has been successfully added.");
 	printf("\n\t\t\t\tRedirecting to Admin page");
 	for(i=0;i<3;i++)
@@ -1370,6 +1391,89 @@ char* roleToStr(Role role)
 	{
 		return "Admin";
 	}
+}
+
+char* UID_Generator(Role rol)
+{
+	int i=1,j=1;
+	struct userDetail id;
+	char *UID = (char *) malloc(10 * sizeof(char));
+	FILE *fp;
+	fp = fopen("Accounts.dat","rb");
+	if(fp == NULL)
+	{
+		setColor(12);
+		printf("\n\t\t\t\tError Accessing the data.Try Again.");
+		Sleep(2000);
+		setColor(9);
+		fclose(fp);
+		return "Invalid";
+	}
+	while(1)
+	{
+		if(rol == owner)
+		{
+			rewind(fp);
+			i=1;
+			while(fread(&id,sizeof(id),1,fp))
+			{
+				if(id.role == owner)
+				{
+					i++;
+				}
+			}
+			sprintf(UID,"00%d",i);
+			fclose(fp);
+			return UID;
+		}
+		else if(rol == manager)
+		{
+			if(id.role == manager)
+			{
+				rewind(fp);
+				i=1;
+				while(fread(&id,sizeof(id),1,fp))
+				{
+					if(id.role == manager)
+					{
+						i++;
+					}
+				}
+			}
+			sprintf(UID,"0%d0",i);
+			fclose(fp);
+			return UID;
+		}
+		else if(rol == employee)
+		{			
+			rewind(fp);
+			i=1;
+			while(fread(&id,sizeof(id),1,fp))
+			{
+				if(id.role == employee)
+				{
+					i++;
+					if(i>9)
+					{
+						i=1;
+						j++;
+					}
+				}
+			}
+			sprintf(UID,"%d0%d",j,i);
+			fclose(fp);
+			return UID;
+		}
+		else
+		{
+			sprintf(UID,"Invalid");
+			fclose(fp);
+			return UID;
+		}
+	}
+	fclose(fp);
+	free(UID);
+	return "Invalid";
 }
 
 void get_current_date(char date[])
