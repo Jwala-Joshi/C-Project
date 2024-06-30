@@ -17,7 +17,7 @@ struct store
 {
 	int quantity;
 	char name[30];
-	long long int barcodeNum[13];
+	long long int barcodeNum;
 	float rate;
 };
 
@@ -927,10 +927,10 @@ void list_Product()
 	}
 	printf("\n\t\t\tProducts");
 	printf("\n------------------------------------------");
-	printf("\nS.N  Name\t Barcode \tQuantity\t rate");
+	printf("\nS.N  Name\t    Barcode \t Quantity\t Rate");
 	while(fread(&product,sizeof(product),1,lp_ptr))
 	{
-		printf("\n%d.   %s\t %13lld\t   %d\t\t %.2f",i+1,product.name,product.barcodeNum,product.quantity,product.rate);
+		printf("\n%d.   %s\t %12lld\t   %d\t\t %.2f",i+1,product.name,product.barcodeNum,product.quantity,product.rate);
 		i++;
 	}
 	fclose(lp_ptr);
@@ -952,7 +952,7 @@ void addProduct()
 	char choice,name[20];
 	struct store product;
 	FILE *ap_ptr;
-	ap_ptr = fopen("Products.dat","ab");
+	ap_ptr = fopen("Products.dat","ab+");
 	if(ap_ptr == NULL)
 	{
 		setColor(12);
@@ -963,7 +963,7 @@ void addProduct()
 	}
 	size = sizeof(product);
 add_Product:
-	printf("Enter product name:");
+	printf("Enter product name: ");
 	fflush(stdin);
 	gets(name);
 	while(fread(&product,sizeof(product),1,ap_ptr))
@@ -971,7 +971,7 @@ add_Product:
 		if(strcmp(name,product.name) == 0)
 		{
 			fseek(ap_ptr, -size, SEEK_CUR);
-			printf("Enter it's quantity");
+			printf("Enter it's quantity: ");
 			fflush(stdin);
 			scanf(" %d",&product.quantity);
 			fwrite(&product,sizeof(product),1,ap_ptr);
@@ -994,17 +994,17 @@ add_Product:
 		}
 	}
 		strcpy(product.name,name);
-		printf("Enter it's quantity");
+		printf("Enter it's quantity: ");
 		fflush(stdin);
 		scanf(" %d",&product.quantity);
-		printf("Enter it's Barcode");
+		printf("Enter it's Barcode: ");
 		fflush(stdin);
-		scanf("%13lld",&product.barcodeNum);
-		printf("Enter it's rate");
+		scanf("%12lld",&product.barcodeNum);
+		printf("Enter it's rate: ");
 		fflush(stdin);
 		scanf("%f",&product.rate);
 		fwrite(&product,sizeof(product),1,ap_ptr);
-		printf("\nProduct Added successfully");
+		printf("\nProduct Added successfully.");
 		printf("\nDo you want to add another product.");
 		printf("\nPress (y/Y) to add.");
 		scanf(" %c",&choice);
@@ -1057,7 +1057,7 @@ up_start:
 			scanf(" %d",&product.quantity);
 			printf("Enter it's Barcode: ");
 			fflush(stdin);
-			scanf("%13lld",&product.barcodeNum);
+			scanf("%12lld",&product.barcodeNum);
 			printf("Enter it's rate: ");
 			fflush(stdin);
 			scanf("%f",&product.rate);
