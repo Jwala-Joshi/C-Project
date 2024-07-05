@@ -715,9 +715,11 @@ void viewAcc(Role role)
 		{
 			continue;
 		}
-		printf("\n\t\t\t\t%d. %s \t\t\t%s",i+1,user.uName,roleToStr(user.role));
+		
+		printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
 		i++;
 	}
+	fclose(v_fp);
 	printf("\n\t\t\t\tPress (b) to go back.");
 	scanf(" %c",&choice);
 	if(choice == 'b')
@@ -733,10 +735,11 @@ void modAcc(Role role)
 {
 	system("cls");
 	int i=0,flag=1,size;
-	char ch,choice,uName[20],uRole[10];
+	char ch,choice,uName[20],uRole[10],uid[3];
 	struct userDetail user;
 	size =sizeof(user);
 	FILE *mod_fp;
+mod_start:
 	mod_fp = fopen("Accounts.dat","rb+");
 	if(mod_fp == NULL)
 	{
@@ -747,7 +750,6 @@ void modAcc(Role role)
 		fclose(mod_fp);
 		return;
 	}
-mod_start:
 	printf("Enter Username: ");
 	fflush(stdin);
 	gets(uName);
@@ -790,13 +792,31 @@ mod_start:
 					}
 				}
 			}
-			printf("\nEnter New UID: ");
-			fflush(stdin);
-			gets(user.uid);
 			printf("Enter New role: ");
 			fflush(stdin);
 			gets(uRole);
 			user.role = strToRole(uRole);
+			if(user.role == -1)
+			{
+				setColor(12);
+				printf("\n\t\t\t\tInvalid Role.Try Again.");
+				setColor(9);
+				fclose(mod_fp);
+				goto mod_start;
+			}
+			strcpy(uid, UID_Generator(user.role));
+			if(strcmp(uid,"Invalid") == 0)
+			{
+				setColor(12);
+				printf("\n\t\t\t\tUID generation Error");
+				setColor(9);
+				fclose(mod_fp);
+				goto mod_start;
+			}
+			strcpy(user.uid,uid);
+			printf("\n\t\t\t\tYour UID is: %s",uid);
+			printf("\n\t\t\t\tMake sure to remember it or note it down.");
+			Sleep(2000);
 			fwrite(&user,sizeof(user),1,mod_fp);
 			fclose(mod_fp);
 			system("cls");
@@ -808,7 +828,7 @@ mod_start:
 			scanf(" %c",&choice);
 			if(choice == 'y')
 			{
-				continue;
+				goto mod_start;
 			}
 			else
 			{
@@ -818,7 +838,6 @@ mod_start:
 					printf(".");
 					Sleep(500);
 				}
-				fclose(mod_fp);
 				return;
 			}
 		}
@@ -829,6 +848,7 @@ mod_start:
 		printf("User doesn't Exist.Try again.\n\n");
 		setColor(9);
 		flag++;
+		fclose(mod_fp);
 		goto mod_start;
 	}
 	else
@@ -836,13 +856,13 @@ mod_start:
 		setColor(12);
 		printf("Too many attempts.Try again.");
 		setColor(9);
+		fclose(mod_fp);
 		printf("\n\t\t\t\tRedirecting to Admin page");
 		for(i=0;i<3;i++)
 		{
 			printf(".");
 			Sleep(500);
 		}
-		fclose(mod_fp);
 		return;
 	}	
 }
@@ -907,11 +927,17 @@ valid_temp:
 	if(remove("Accounts.dat") !=0)
 	{
 		printf("Error");
+		printf("\nRedirecting to main page");
+		for(i=0;i<3;i++)
+		{
+			printf(".");
+			Sleep(500);
+		}
+		return;
 	}
 	else
 	{
 		rename("tempfile.dat","Accounts.dat");
-		
 	}
 	printf("\nAccount has been removed successfully.");
 	printf("\nDo you want to remove another Account.");
