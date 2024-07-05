@@ -65,7 +65,6 @@ int main()
 		printf("\nDo you want to recover the account.[y/n]");
 		fflush(stdin);
 		scanf(" %c",&choice);
-		
 		if(choice == 'y' || choice == 'Y')
 		{
 			recovery();
@@ -371,7 +370,7 @@ o_start:
 	printf("\n\n\n\t\t\t\t\tSmall Mart\n\n");
 	printf("\t\t\t---------------------------------------\n");
 	printf("\t\t\t---------------------------------------\n");
-	printf("\n\n\t\t\t\t\tAdmin\n\n");
+	printf("\n\n\t\t\t\t\tOwner\n\n");
 	printf("\t\t\t---------------------------------------\n");
 	printf("\t\t\t\t1. View Product.\n");
 	printf("\t\t\t\t2. View Today's Sales.\n");
@@ -434,7 +433,7 @@ m_start:
 	printf("\n\n\n\t\t\t\t\tSmall Mart\n\n");
 	printf("\t\t\t---------------------------------------\n");
 	printf("\t\t\t---------------------------------------\n");
-	printf("\n\n\t\t\t\t\tAdmin\n\n");
+	printf("\n\n\t\t\t\t\tManager\n\n");
 	printf("\t\t\t---------------------------------------\n");
 	printf("\t\t\t\t1. View Product.\n");
 	printf("\t\t\t\t2. View Today's Sales.\n");
@@ -558,6 +557,7 @@ ADMIN_start:
 	printf("\t\t\t\t4.Remove Account.\n");
 	printf("\t\t\t\t5.Exit.\n");
 	printf("\t\t\t\tEnter your option: ");
+	fflush(stdin);
 	scanf(" %c",&choice);
 	switch(choice)
 	{
@@ -583,7 +583,7 @@ ADMIN_start:
 			
 		case '5':
 			printf("\n\t\t\t\tThank you for using.");
-			exit(0);
+			return;
 			
 		default:
 			printf("\n\t\t\t\tPlease Choose a correct Option.");
@@ -596,21 +596,21 @@ void addAcc()
 {
 	system("cls");
 	int i=0;
-	char ch,uName[20],uid[3],role[8];
+	char ch,uName[20],uid[3],role[8],choice;
 	struct userDetail user;
 	FILE *a_fp;
 	a_fp = fopen("Accounts.dat","ab+");
 	if(a_fp == NULL)
 	{
 		setColor(12);
-		printf("\n\t\t\t\tError Accessing the data.Try Again.");
-		Sleep(2000);
+		printf("\n\t\t\t\tError Accessing the data.Try Again.\n");
+		Sleep(1000);
 		setColor(9);
 		fclose(a_fp);
 		return;
 	}
 add_start:
-	printf("\n\t\t\t\tEnter Username: ");
+	printf("\t\t\t\tEnter Username: ");
 	fflush(stdin);
 	gets(uName);
 	rewind(a_fp);
@@ -619,13 +619,13 @@ add_start:
 		if(strcmp(uName,user.uName) == 0)
 		{
 			setColor(12);
-			printf("\n\t\t\t\tUser already exist.Try with a different username.");
+			printf("\n\t\t\t\tUser already exist.Try with a different username.\n");
 			setColor(9);
 			goto add_start;
 		}
 	}
 	strcpy(user.uName,uName);
-	printf("\n\t\t\t\tEnter Password: ");
+	printf("\t\t\t\tEnter Password: ");
 	fflush(stdin);
 	i=0;
 	while(1)
@@ -651,14 +651,14 @@ add_start:
 			}
 		}
 	}
-	printf("\n\t\t\t\tEnter role: ");
+	printf("\n\t\t\t\tEnter role(Owner,Manager,Employee): ");
 	fflush(stdin);
 	gets(role);
 	user.role = strToRole(role);
 	if(user.role == -1)
 	{
 		setColor(12);
-		printf("\n\t\t\t\tInvalid Role.Try Again.");
+		printf("\n\t\t\t\tInvalid Role.Try Again.\n");
 		setColor(9);
 		goto add_start;
 	}
@@ -666,7 +666,7 @@ add_start:
 	if(strcmp(uid,"Invalid") == 0)
 	{
 		setColor(12);
-		printf("\n\t\t\t\tUID generation Error");
+		printf("\n\t\t\t\tUID generation Error.\n");
 		setColor(9);
 		goto add_start;
 	}
@@ -674,9 +674,14 @@ add_start:
 	printf("\n\t\t\t\tYour UID is: %s",uid);
 	printf("\n\t\t\t\tMake sure to remember it or note it down.");
 	fwrite(&user,sizeof(user),1,a_fp);
-	fclose(a_fp);
-	Sleep(3000);
 	printf("\n\t\t\t\tThe user has been successfully added.");
+	printf("\n\t\t\t\tDo you want to add new Account[y/n]: ");
+	scanf(" %c",&choice);
+	if(choice == 'y')
+	{
+		goto add_start;
+	}
+	fclose(a_fp);
 	printf("\n\t\t\t\tRedirecting to Admin page");
 	for(i=0;i<3;i++)
 	{
@@ -711,13 +716,37 @@ void viewAcc(Role role)
 	rewind(v_fp);
 	while(fread(&user,sizeof(user),1,v_fp))
 	{
-		if(role == manager && user.role == manager)
+		if(role == manager && (user.role == manager || user.role == owner ) )
 		{
 			continue;
 		}
-		
-		printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
-		i++;
+		rewind(v_fp);
+		while(fread(&user,sizeof(user),1,v_fp))
+		{	
+			if(user.role == owner)
+			{
+			printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
+			i++;
+			}
+		}
+		rewind(v_fp);
+		while(fread(&user,sizeof(user),1,v_fp))
+		{	
+			if(user.role == manager)
+			{
+			printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
+			i++;
+			}
+		}
+		rewind(v_fp);
+		while(fread(&user,sizeof(user),1,v_fp))
+		{	
+			if(user.role == employee)
+			{
+			printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
+			i++;
+			}
+		}
 	}
 	fclose(v_fp);
 	printf("\n\t\t\t\tPress (b) to go back.");
@@ -727,7 +756,7 @@ void viewAcc(Role role)
 		return;
 	}
 	setColor(7);
-	printf("\n\t\t\t\tThank you fo using.");
+	printf("\n\t\t\t\tThank you for using.");
 	exit(0);
 }
 
@@ -735,22 +764,22 @@ void modAcc(Role role)
 {
 	system("cls");
 	int i=0,flag=1,size;
-	char ch,choice,uName[20],uRole[10],uid[3];
+	char ch,choice,uName[20],uRole[8],uid[3];
 	struct userDetail user;
 	size =sizeof(user);
 	FILE *mod_fp;
-mod_start:
 	mod_fp = fopen("Accounts.dat","rb+");
+mod_start:
 	if(mod_fp == NULL)
 	{
 		setColor(12);
-		printf("\n\t\t\t\tError Accessing the data.Try Again.");
+		printf("\n\t\t\t\tError Accessing the data.Try Again.\n");
 		Sleep(2000);
 		setColor(9);
 		fclose(mod_fp);
 		return;
 	}
-	printf("Enter Username: ");
+	printf("\n\t\t\t\tEnter Username: ");
 	fflush(stdin);
 	gets(uName);
 	rewind(mod_fp);
@@ -763,10 +792,10 @@ mod_start:
 		if(strcmp(uName,user.uName) == 0)
 		{
 			fseek(mod_fp, -size, SEEK_CUR);
-			printf("Enter New Username: ");
+			printf("\t\t\t\tEnter New Username: ");
 			fflush(stdin);
 			gets(user.uName);
-			printf("Enter New Password: ");
+			printf("\t\t\t\tEnter New Password: ");
 			fflush(stdin);
 			i=0;
 			while(1)
@@ -792,7 +821,7 @@ mod_start:
 					}
 				}
 			}
-			printf("Enter New role: ");
+			printf("\n\t\t\t\tEnter New role(Owner,Manager,Employee): ");
 			fflush(stdin);
 			gets(uRole);
 			user.role = strToRole(uRole);
@@ -816,10 +845,7 @@ mod_start:
 			strcpy(user.uid,uid);
 			printf("\n\t\t\t\tYour UID is: %s",uid);
 			printf("\n\t\t\t\tMake sure to remember it or note it down.");
-			Sleep(2000);
 			fwrite(&user,sizeof(user),1,mod_fp);
-			fclose(mod_fp);
-			system("cls");
 			setColor(10);
 			printf("\n\t\t\t\tThe user has been successfully updated.");
 			setColor(9);
@@ -832,6 +858,7 @@ mod_start:
 			}
 			else
 			{
+				fclose(mod_fp);
 				printf("\n\t\t\t\tRedirecting to Admin page");
 				for(i=0;i<3;i++)
 				{
@@ -848,7 +875,6 @@ mod_start:
 		printf("User doesn't Exist.Try again.\n\n");
 		setColor(9);
 		flag++;
-		fclose(mod_fp);
 		goto mod_start;
 	}
 	else
@@ -1009,7 +1035,6 @@ void addProduct()
 		return;
 	}
 	size = sizeof(product);
-add_Product:
 	printf("Enter product name: ");
 	fflush(stdin);
 	gets(name);
@@ -1017,10 +1042,10 @@ add_Product:
 	{
 		if(strcmp(name,product.name) == 0)
 		{
-			fseek(ap_ptr, -size, SEEK_CUR);
 			printf("Enter it's quantity: ");
 			fflush(stdin);
 			scanf(" %d",&product.quantity);
+			fseek(ap_ptr, -size, SEEK_CUR);
 			fwrite(&product,sizeof(product),1,ap_ptr);
 			fclose(ap_ptr);
 			printf("\nProduct Added successfully");
@@ -1029,7 +1054,8 @@ add_Product:
 			scanf(" %c",&choice);
 			if(choice == 'y' || choice == 'Y')
 			{
-				goto add_Product;
+				addProduct();
+				return;
 			} 
 			printf("Redirecting to main page");
 			for(i=0;i<3;i++)
@@ -1040,26 +1066,28 @@ add_Product:
 			return;
 		}
 	}
-		strcpy(product.name,name);
-		printf("Enter it's quantity: ");
-		fflush(stdin);
-		scanf(" %d",&product.quantity);
-		printf("Enter it's Barcode: ");
-		fflush(stdin);
-		scanf("%12lld",&product.barcodeNum);
-		printf("Enter it's rate: ");
-		fflush(stdin);
-		scanf("%f",&product.rate);
-		fwrite(&product,sizeof(product),1,ap_ptr);
-		printf("\nProduct Added successfully.");
-		printf("\nDo you want to add another product.");
-		printf("\nPress (y/Y) to add.");
-		scanf(" %c",&choice);
-		if(choice == 'y' || choice == 'Y')
-		{
-			goto add_Product;
-		} 
+	fseek(ap_ptr, 0, SEEK_END);
+	strcpy(product.name,name);
+	printf("Enter it's quantity: ");
+	fflush(stdin);
+	scanf(" %d",&product.quantity);
+	printf("Enter it's Barcode: ");
+	fflush(stdin);
+	scanf("%lld",&product.barcodeNum);
+	printf("Enter it's rate: ");
+	fflush(stdin);
+	scanf("%f",&product.rate);
+	fwrite(&product,sizeof(product),1,ap_ptr);
 	fclose(ap_ptr);
+	printf("\nProduct Added successfully.");
+	printf("\nDo you want to add another product.");
+	printf("\nPress (y/Y) to add.");
+	scanf(" %c",&choice);
+	if(choice == 'y' || choice == 'Y')
+	{
+		addProduct();
+		return;
+	} 
 	printf("Redirecting to main page");
 	for(i=0;i<3;i++)
 	{
@@ -1104,7 +1132,7 @@ up_start:
 			scanf(" %d",&product.quantity);
 			printf("Enter it's Barcode: ");
 			fflush(stdin);
-			scanf("%12lld",&product.barcodeNum);
+			scanf("%lld",&product.barcodeNum);
 			printf("Enter it's rate: ");
 			fflush(stdin);
 			scanf("%f",&product.rate);
@@ -1232,7 +1260,7 @@ void sale()
 	struct sale sales;
 	FILE *ptr_sale,*ptr_total;
 sale_start:
-	ptr_sale = fopen("Products.dat","r+");
+	ptr_sale = fopen("Products.dat","rb+");
 	ptr_total = fopen("TotalSales.dat","ab+");
 	if(ptr_sale == NULL)
 	{
@@ -1249,7 +1277,7 @@ sale_start:
 		return;
 	}
 	size = sizeof(product);
-		printf("\nEnter the Product's name: ");
+		printf("Enter the Product's name: ");
 		fflush(stdin);
 		gets(name);
 		rewind(ptr_sale);
@@ -1265,17 +1293,17 @@ sale_start:
 		if(flag == 0)
 		{
 			setColor(12);
-			printf("\nThere is no such product in the store.Try Again.");
+			printf("There is no such product in the store.Try Again.\n");
 			setColor(9);
 			flag--;
 			goto sale_start;
 		}
 		if(flag == -1)
 		{
-			printf("\nTry using the product's barcode.");
-			printf("\nEnter the Barcode: ");
+			printf("Try using the product's barcode.\n");
+			printf("Enter the Barcode: ");
 			fflush(stdin);
-			scanf("%12lld",&barcode);
+			scanf("%lld",&barcode);
 			rewind(ptr_sale);
 			while(fread(&product,size,1,ptr_sale))
 			{
@@ -1283,14 +1311,17 @@ sale_start:
 				{
 					fseek(ptr_sale, -size, SEEK_CUR);
 					flag =1;
-					break;
+					goto Q;
 				}
 			}
 			flag = 0;
-			printf("\nThere is no such product in the store.");
+			setColor(12);
+			printf("There is no such product in the store.\n");
+			setColor(9);
 			goto sale_start;
 		}
-		printf("\nEnter the quantity: ");
+Q:
+		printf("Enter the quantity: ");
 		fflush(stdin);	
 		scanf(" %d",&qty);
 		if( qty > product.quantity)
@@ -1315,7 +1346,7 @@ sale_start:
 		fclose(ptr_sale);
 		fclose(ptr_total);
 		setColor(10); 
-		printf("Product Sale Successfull.");
+		printf("\nProduct Sale Successfull.");
 		setColor(9);
 		printf("\nDo you want to sale another product. ");
 		printf("\nPress (y/Y) to sale.");
@@ -1454,16 +1485,13 @@ char* UID_Generator(Role rol)
 		}
 		else if(rol == manager)
 		{
-			if(id.role == manager)
+			rewind(fp);
+			i=1;
+			while(fread(&id,sizeof(id),1,fp))
 			{
-				rewind(fp);
-				i=1;
-				while(fread(&id,sizeof(id),1,fp))
+				if(id.role == manager)
 				{
-					if(id.role == manager)
-					{
-						i++;
-					}
+					i++;
 				}
 			}
 			sprintf(UID,"0%d0",i);
