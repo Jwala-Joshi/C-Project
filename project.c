@@ -716,37 +716,43 @@ void viewAcc(Role role)
 	rewind(v_fp);
 	while(fread(&user,sizeof(user),1,v_fp))
 	{
-		if(role == manager && (user.role == manager || user.role == owner ) )
+		if( (role == manager && (user.role == manager || user.role == owner)) != 1 )
 		{
-			continue;
-		}
-		rewind(v_fp);
-		while(fread(&user,sizeof(user),1,v_fp))
-		{	
-			if(user.role == owner)
+			if(role != manager)
 			{
-			printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
-			i++;
+				rewind(v_fp);
+				while(fread(&user,sizeof(user),1,v_fp))
+				{	
+					if(user.role == owner)
+					{
+					printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
+					i++;
+					}
+				}
+			}
+			if(role != manager)
+			{
+				rewind(v_fp);
+				while(fread(&user,sizeof(user),1,v_fp))
+				{	
+					if(user.role == manager)
+					{
+					printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
+					i++;
+					}
+				}
+			}
+			rewind(v_fp);
+			while(fread(&user,sizeof(user),1,v_fp))
+			{	
+				if(user.role == employee)
+				{
+				printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
+				i++;
+				}
 			}
 		}
-		rewind(v_fp);
-		while(fread(&user,sizeof(user),1,v_fp))
-		{	
-			if(user.role == manager)
-			{
-			printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
-			i++;
-			}
-		}
-		rewind(v_fp);
-		while(fread(&user,sizeof(user),1,v_fp))
-		{	
-			if(user.role == employee)
-			{
-			printf("\n\t\t\t\t%d. %s \t\t%s",i+1,user.uName,roleToStr(user.role));
-			i++;
-			}
-		}
+		continue;
 	}
 	fclose(v_fp);
 	printf("\n\t\t\t\tPress (b) to go back.");
