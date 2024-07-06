@@ -775,7 +775,6 @@ void modAcc(Role role)
 	size =sizeof(user);
 	FILE *mod_fp;
 	mod_fp = fopen("Accounts.dat","rb+");
-mod_start:
 	if(mod_fp == NULL)
 	{
 		setColor(12);
@@ -785,13 +784,25 @@ mod_start:
 		fclose(mod_fp);
 		return;
 	}
+mod_start:
 	printf("\n\t\t\t\tEnter Username: ");
 	fflush(stdin);
 	gets(uName);
 	rewind(mod_fp);
 	while(fread(&user,sizeof(user),1,mod_fp))
 	{
-		if(role == manager && user.role == manager)
+		if(strcmp(uName,user.uName) == 0)
+		{
+			setColor(12);
+			printf("\t\t\t\tUser already exists.Try again");
+			setColor(9);
+			goto mod_start;
+		}
+	}
+	rewind(mod_fp);
+	while(fread(&user,sizeof(user),1,mod_fp))
+	{
+		if(role == manager && (user.role == manager || user.role == owner) )
 		{
 			continue;
 		}
