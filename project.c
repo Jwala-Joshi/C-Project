@@ -34,16 +34,16 @@ void setColor(int);
 void owner_Access(Role);
 void manager_Access(Role);
 void Emp_Access(Role);
-void ADMIN();
-void addAcc();
-void viewAcc();
-void modAcc();
-void removeAcc();
+void ADMIN(Role);
+void addAcc(Role);
+void viewAcc(Role);
+void modAcc(Role);
+void removeAcc(Role);
 void list_Product();
 void addProduct();
 void updateProduct();
 void removeProduct();
-void sale();
+void Sale();
 void todaySales();
 Role strToRole(char [] );
 char* roleToStr(Role);
@@ -118,6 +118,9 @@ l_start:
 		}	
 		if(strcmp(pass,"Admin") == 0)
 		{
+			setColor(10);
+			printf("\nLogin Successfull.");
+			setColor(7);
 			return admin;
 		}
 		else
@@ -196,6 +199,7 @@ l_Pass:
 			setColor(10);
 			printf("\nLogin successful. Welcome %s.",uName);
 			setColor(7);
+			fclose(l_fp);
 			return user.role;
 		}
 	}
@@ -407,7 +411,7 @@ o_start:
 			goto o_start;
 			break;
 		case '6':	
-			sale();
+			Sale();
 			goto o_start;
 			break;
 		case '7':
@@ -470,7 +474,7 @@ m_start:
 			goto m_start;
 			break;
 		case '6':	
-			sale();
+			Sale();
 			goto m_start;
 			break;
 		case '7':
@@ -527,7 +531,7 @@ emp_start:
 			goto emp_start;
 			break;
 		case '5':
-			sale();
+			Sale();
 			goto emp_start;
 			break;
 		case '6':
@@ -562,7 +566,7 @@ ADMIN_start:
 	switch(choice)
 	{
 		case '1':
-			addAcc();
+			addAcc(role);
 			goto ADMIN_start;
 			break;
 		
@@ -592,7 +596,7 @@ ADMIN_start:
 	}
 }
 
-void addAcc()
+void addAcc(Role prole)
 {
 	system("cls");
 	int i=0;
@@ -651,6 +655,38 @@ add_start:
 			}
 		}
 	}
+	if(prole == manager)
+	{
+		user.role = employee;
+		strcpy(uid, UID_Generator(user.role));
+		if(strcmp(uid,"Invalid") == 0)
+		{
+			setColor(12);
+			printf("\n\t\t\t\tUID generation Error.\n");
+			setColor(9);
+			goto add_start;
+		}
+		strcpy(user.uid,uid);
+		printf("\n\t\t\t\tYour UID is: %s",uid);
+		printf("\n\t\t\t\tMake sure to remember it or note it down.");
+		fwrite(&user,sizeof(user),1,a_fp);
+		printf("\n\t\t\t\tThe user has been successfully added.");
+		printf("\n\t\t\t\tDo you want to add new Account[y/n]: ");
+		fflush(stdin);
+		scanf(" %c",&choice);
+		if(choice == 'y')
+		{
+			goto add_start;
+		}
+		fclose(a_fp);
+		printf("\n\t\t\t\tRedirecting to Admin page");
+		for(i=0;i<3;i++)
+		{
+			printf(".");
+			Sleep(500);
+		}
+		return;
+	}
 	printf("\n\t\t\t\tEnter role(Owner,Manager,Employee): ");
 	fflush(stdin);
 	gets(role);
@@ -677,6 +713,7 @@ add_start:
 	printf("\n\t\t\t\tThe user has been successfully added.");
 	printf("\n\t\t\t\tDo you want to add new Account[y/n]: ");
 	scanf(" %c",&choice);
+	fflush(stdin);
 	if(choice == 'y')
 	{
 		goto add_start;
@@ -785,20 +822,9 @@ void modAcc(Role role)
 		return;
 	}
 mod_start:
-	printf("\n\t\t\t\tEnter Username: ");
+	printf("\t\t\t\tEnter Username: ");
 	fflush(stdin);
 	gets(uName);
-	rewind(mod_fp);
-	while(fread(&user,sizeof(user),1,mod_fp))
-	{
-		if(strcmp(uName,user.uName) == 0)
-		{
-			setColor(12);
-			printf("\t\t\t\tUser already exists.Try again");
-			setColor(9);
-			goto mod_start;
-		}
-	}
 	rewind(mod_fp);
 	while(fread(&user,sizeof(user),1,mod_fp))
 	{
@@ -838,6 +864,35 @@ mod_start:
 					}
 				}
 			}
+			if(role == manager)
+			{
+				user.role = employee;
+				strcpy(uid,user.uid);
+				printf("\n\t\t\t\tYour UID is: %s",uid);
+				printf("\n\t\t\t\tMake sure to remember it or note it down.");
+				fwrite(&user,sizeof(user),1,mod_fp);
+				setColor(10);
+				printf("\n\t\t\t\tThe user has been successfully updated.");
+				setColor(9);
+				printf("\n\t\t\t\tDo you want to modify another account.[y/n]");
+				fflush(stdin);
+				scanf(" %c",&choice);
+				if(choice == 'y')
+				{
+					goto mod_start;
+				}
+				else
+				{
+					fclose(mod_fp);
+					printf("\n\t\t\t\tRedirecting to Admin page");
+					for(i=0;i<3;i++)
+					{
+						printf(".");
+						Sleep(500);
+					}
+					return;
+				}
+			}
 			printf("\n\t\t\t\tEnter New role(Owner,Manager,Employee): ");
 			fflush(stdin);
 			gets(uRole);
@@ -850,16 +905,7 @@ mod_start:
 				fclose(mod_fp);
 				goto mod_start;
 			}
-			strcpy(uid, UID_Generator(user.role));
-			if(strcmp(uid,"Invalid") == 0)
-			{
-				setColor(12);
-				printf("\n\t\t\t\tUID generation Error");
-				setColor(9);
-				fclose(mod_fp);
-				goto mod_start;
-			}
-			strcpy(user.uid,uid);
+			strcpy(uid,user.uid);
 			printf("\n\t\t\t\tYour UID is: %s",uid);
 			printf("\n\t\t\t\tMake sure to remember it or note it down.");
 			fwrite(&user,sizeof(user),1,mod_fp);
@@ -889,7 +935,7 @@ mod_start:
 	if(flag<3)
 	{
 		setColor(12);
-		printf("User doesn't Exist.Try again.\n\n");
+		printf("\t\t\t\tUser doesn't Exist.Try again.\n");
 		setColor(9);
 		flag++;
 		goto mod_start;
@@ -897,7 +943,7 @@ mod_start:
 	else
 	{
 		setColor(12);
-		printf("Too many attempts.Try again.");
+		printf("\t\t\t\tToo many attempts.Try again.");
 		setColor(9);
 		fclose(mod_fp);
 		printf("\n\t\t\t\tRedirecting to Admin page");
@@ -917,6 +963,7 @@ void removeAcc(Role role)
 	char choice,uName[20];
 	struct userDetail user;
 	FILE *rmu_fp,*tp_fp;
+rm_user:
 	rmu_fp = fopen("Accounts.dat","rb+");
 	if(rmu_fp == NULL)
 	{
@@ -925,14 +972,13 @@ void removeAcc(Role role)
 		setColor(9);
 		return;
 	}
-rm_user:
 	printf("Enter the Account you want to remove: ");
 	fflush(stdin);
 	gets(uName);
 	rewind(rmu_fp);
 	while(fread(&user,sizeof(user),1,rmu_fp))
 	{	
-		if(role == manager)
+		if(role == manager && (user.role == manager || user.role == owner))
 		{
 			continue;
 		}
@@ -941,7 +987,7 @@ rm_user:
 			goto valid_temp;
 		}
 	}
-	printf("\nNo need to remove Account. \nIt was not there from the start.");
+	printf("No need to remove Account. \nIt was not there from the start.");
 	printf("\nRedirecting to main page");
 	for(i=0;i<3;i++)
 	printf(".");
@@ -982,7 +1028,9 @@ valid_temp:
 	{
 		rename("tempfile.dat","Accounts.dat");
 	}
-	printf("\nAccount has been removed successfully.");
+	setColor(10);
+	printf("Account has been removed successfully.");
+	setColor(9);
 	printf("\nDo you want to remove another Account.");
 	printf("\nPress (y/Y) to remove.");
 	scanf(" %c",&choice);
@@ -1175,7 +1223,7 @@ up_start:
 	if(flag<3)
 	{
 		setColor(12);
-		printf("\nProduct doesn't Exist.Try Again.");
+		printf("Product doesn't Exist.Try Again.\n");
 		setColor(9);
 		goto up_start;
 	}
@@ -1267,7 +1315,7 @@ skip:
 	return;
 }
 
-void sale()
+void Sale()
 {
 	system("cls");
 	char name[20],choice,date[11];
@@ -1344,7 +1392,7 @@ Q:
 		if( qty > product.quantity)
 		{
 			setColor(12);
-			printf("\nInsufficent Quantity.");
+			printf("Insufficent Quantity.\n");
 			setColor(9);
 			goto sale_start;
 		}
