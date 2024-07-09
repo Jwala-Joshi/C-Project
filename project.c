@@ -599,7 +599,7 @@ ADMIN_start:
 void addAcc(Role prole)
 {
 	system("cls");
-	int i=0;
+	int i=0,c=0;
 	char ch,uName[20],uid[3],role[8],choice;
 	struct userDetail user;
 	FILE *a_fp;
@@ -617,6 +617,18 @@ add_start:
 	printf("\t\t\t\tEnter Username: ");
 	fflush(stdin);
 	gets(uName);
+	c=0;
+	for(i=0;uName[i]!=0;i++)
+	{
+		c++;
+	}
+	if(c<4 || c>20)
+	{
+		setColor(12);
+		printf("\t\t\t\tPlease enter a username within 4 to 20 characters.\n");
+		setColor(9);
+		goto add_start;
+	}
 	rewind(a_fp);
 	while(fread(&user,sizeof(user),1,a_fp))
 	{
@@ -806,7 +818,7 @@ void viewAcc(Role role)
 void modAcc(Role role)
 {
 	system("cls");
-	int i=0,flag=1,size;
+	int i=0,flag=1,size,c=0;
 	char ch,choice,uName[20],uRole[8],uid[3];
 	struct userDetail user;
 	size =sizeof(user);
@@ -825,6 +837,18 @@ mod_start:
 	printf("\t\t\t\tEnter Username: ");
 	fflush(stdin);
 	gets(uName);
+	c=0;
+	for(i=0;uName[i]!=0;i++)
+	{
+		c++;
+	}
+	if(c<4 || c>20)
+	{
+		setColor(12);
+		printf("\t\t\t\tPlease enter a username within 4 to 20 characters.\n");
+		setColor(9);
+		goto mod_start;
+	}
 	rewind(mod_fp);
 	while(fread(&user,sizeof(user),1,mod_fp))
 	{
