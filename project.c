@@ -1092,7 +1092,7 @@ void list_Product()
 	printf("\nS.N  Name\t    Barcode \t Quantity\t Rate");
 	while(fread(&product,sizeof(product),1,lp_ptr))
 	{
-		printf("\n%d.   %s\t %12lld\t   %d\t\t %.2f",i+1,product.name,product.barcodeNum,product.quantity,product.rate);
+		printf("\n%d.   %s\t %11lld\t   %d\t\t %.2f",i+1,product.name,product.barcodeNum,product.quantity,product.rate);
 		i++;
 	}
 	fclose(lp_ptr);
@@ -1157,13 +1157,13 @@ void addProduct()
 	}
 	fseek(ap_ptr, 0, SEEK_END);
 	strcpy(product.name,name);
-	printf("Enter it's quantity: ");
+	printf("Enter its quantity: ");
 	fflush(stdin);
 	scanf(" %d",&product.quantity);
-	printf("Enter it's Barcode: ");
+	printf("Enter its Barcode: ");
 	fflush(stdin);
-	scanf("%lld",&product.barcodeNum);
-	printf("Enter it's rate: ");
+	scanf("%11lld",&product.barcodeNum);
+	printf("Enter its rate: ");
 	fflush(stdin);
 	scanf("%f",&product.rate);
 	fwrite(&product,sizeof(product),1,ap_ptr);
@@ -1216,13 +1216,13 @@ up_start:
 			printf("Enter New product: ");
 			fflush(stdin);
 			gets(product.name);
-			printf("Enter it's quantity: ");
+			printf("Enter its quantity: ");
 			fflush(stdin);
 			scanf(" %d",&product.quantity);
-			printf("Enter it's Barcode: ");
+			printf("Enter its Barcode: ");
 			fflush(stdin);
-			scanf("%lld",&product.barcodeNum);
-			printf("Enter it's rate: ");
+			scanf("%11lld",&product.barcodeNum);
+			printf("Enter its rate: ");
 			fflush(stdin);
 			scanf("%f",&product.rate);
 			fwrite(&product,sizeof(product),1,up_ptr);
@@ -1274,6 +1274,7 @@ void removeProduct()
 	char choice,name[30];
 	struct store product;
 	FILE *rm_ptr,*tp_ptr;
+rm_start:
 	rm_ptr = fopen("Products.dat","rb+");
 	if(rm_ptr == NULL)
 	{
@@ -1283,7 +1284,6 @@ void removeProduct()
 		fclose(rm_ptr);
 		return;
 	}
-rm_start:
 	printf("Enter the Product you want to remove: ");
 	fflush(stdin);
 	gets(name);
@@ -1366,7 +1366,7 @@ sale_start:
 		return;
 	}
 	size = sizeof(product);
-		printf("Enter the Product's name: ");
+		printf("Enter the Product name: ");
 		fflush(stdin);
 		gets(name);
 		rewind(ptr_sale);
@@ -1392,7 +1392,7 @@ sale_start:
 			printf("Try using the product's barcode.\n");
 			printf("Enter the Barcode: ");
 			fflush(stdin);
-			scanf("%lld",&barcode);
+			scanf("%11lld",&barcode);
 			rewind(ptr_sale);
 			while(fread(&product,size,1,ptr_sale))
 			{
@@ -1473,14 +1473,18 @@ void todaySales()
 		return;
 	}
 	i=0;
-	printf("\n\t\t\t\t\tToday's Sale");
+	get_current_date(date);
+	printf("\n\t\t\t\t\tToday\'s Sale");
 	printf("\n\t\t\t------------------------------------");
-	printf("\nS.N Name\t\t\t Date\t\t\tQuantity\tTotal");
+	printf("\nS.N  Name\t\t\t Date\t\t\tQuantity\tTotal");
 	while(fread(&sales,sizeof(sales),1,pt))
 	{
-		printf("\n%d.   %s\t\t\t %s\t\t%d\t\t%.2f",i+1,sales.p.name,sales.date,sales.p.quantity,sales.p.rate);
-		total += sales.p.rate;
-		i++;
+		if(strcmp(date,sales.date) == 0)
+		{
+			printf("\n%d.   %s\t\t\t %s\t\t%d\t\t%.2f",i+1,sales.p.name,sales.date,sales.p.quantity,sales.p.rate);
+			total += sales.p.rate;
+			i++;
+		}
 	}
 	printf("\n---------------------------");
 	printf("\nTotal Sales: \t\t\t\t%d",total);
